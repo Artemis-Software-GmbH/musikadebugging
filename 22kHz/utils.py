@@ -45,9 +45,12 @@ class Utils_functions:
         P = P * np.pi
         Sls = tf.split(S, S.shape[0], 0)
         S = tf.squeeze(tf.concat(Sls, 1), 0)
+        print('S ', S.shape)
         Pls = tf.split(P, P.shape[0], 0)
         P = tf.squeeze(tf.concat(Pls, 1), 0)
+        print('P ', P.shape)
         SP = tf.cast(S, tf.complex64) * tf.math.exp(1j * tf.cast(P, tf.complex64))
+        print('SP ', SP.shape)
         wv = tf.signal.inverse_stft(
             SP,
             4 * self.args.hop,
@@ -55,7 +58,10 @@ class Utils_functions:
             fft_length=4 * self.args.hop,
             window_fn=tf.signal.inverse_stft_window_fn(self.args.hop),
         )
-        return np.squeeze(wv)
+        print('wv ', wv.shape)
+        squeezed_wv = np.squeeze(wv)
+        print('squeezed_wv ', squeezed_wv.shape)
+        return squeezed_wv
 
     def _tf_log10(self, x):
         numerator = tf.math.log(x)
@@ -218,7 +224,7 @@ class Utils_functions:
         return tf.image.random_crop(noisetot, [1, self.args.latlen, 64 + 64])
 
     def generate_example_stereo(self, models_ls):
-        println('begin generate_example_stereo')
+        print('begin generate_example_stereo')
         (
             critic,
             gen,
