@@ -231,9 +231,9 @@ class Utils_functions:
             [opt_dec, opt_disc],
         ) = models_ls
         noise = self.get_noise_interp()
-        println('noise ', noise.shape)
+        print('noise ', noise.shape)
         abb = gen_ema(noise, training=False)
-        println('abb ', abb.shape)
+        print('abb ', abb.shape)
         abbls = tf.split(abb, abb.shape[-2] // 16, -2)
         abb = tf.concat(abbls, 0)
 
@@ -249,18 +249,18 @@ class Utils_functions:
                 ],
                 dec2,
             )
-            println('ab ', ab.shape)
+            print('ab ', ab.shape)
             abls = tf.split(ab, ab.shape[-2] // self.args.shape, -2)
             ab = tf.concat(abls, 0)
             ab_m, ab_p = self.distribute_dec(ab, dec)
-            println('ab m ', ab_m.shape)
-            println('ab p ', ab_p.shape)
+            print('ab m ', ab_m.shape)
+            print('ab p ', ab_p.shape)
             wv = self.conc_tog_specphase(ab_m, ab_p)
-            println('wv ', wv.shape)
+            print('wv ', wv.shape)
             chls.append(wv)
 
         stacked = np.stack(chls, -1)
-        println('stacked ', stacked.shape)
+        print('stacked ', stacked.shape)
         return stacked
 
     # Save in training loop
