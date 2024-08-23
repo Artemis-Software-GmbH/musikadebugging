@@ -218,6 +218,7 @@ class Utils_functions:
         return tf.image.random_crop(noisetot, [1, self.args.latlen, 64 + 64])
 
     def generate_example_stereo(self, models_ls):
+        println('begin generate_example_stereo')
         (
             critic,
             gen,
@@ -229,13 +230,16 @@ class Utils_functions:
             gen_ema,
             [opt_dec, opt_disc],
         ) = models_ls
-        abb = gen_ema(self.get_noise_interp(), training=False)
+        noise = self.get_noise_interp()
+        println('noise ', noise.shape)
+        abb = gen_ema(noise, training=False)
+        println('abb ', abb.shape)
         abbls = tf.split(abb, abb.shape[-2] // 16, -2)
         abb = tf.concat(abbls, 0)
 
         chls = []
         for channel in range(2):
-
+            print('channel ', channel)
             ab = self.distribute_dec2(
                 abb[
                     :,
@@ -245,13 +249,19 @@ class Utils_functions:
                 ],
                 dec2,
             )
+            println('ab ', ab.shape)
             abls = tf.split(ab, ab.shape[-2] // self.args.shape, -2)
             ab = tf.concat(abls, 0)
             ab_m, ab_p = self.distribute_dec(ab, dec)
+            println('ab m ', ab_m.shape)
+            println('ab p ', ab_p.shape)
             wv = self.conc_tog_specphase(ab_m, ab_p)
+            println('wv ', wv.shape)
             chls.append(wv)
 
-        return np.stack(chls, -1)
+        stacked = np.stack(chls, -1)
+        println('stacked ', stacked.shape)
+        return stacked
 
     # Save in training loop
     def save_test_image_full(self, path, models_ls=None):
