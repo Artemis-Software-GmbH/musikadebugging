@@ -45,12 +45,9 @@ class Utils_functions:
         P = P * np.pi
         Sls = tf.split(S, S.shape[0], 0)
         S = tf.squeeze(tf.concat(Sls, 1), 0)
-        print('S ', S.shape)
         Pls = tf.split(P, P.shape[0], 0)
         P = tf.squeeze(tf.concat(Pls, 1), 0)
-        print('P ', P.shape)
         SP = tf.cast(S, tf.complex64) * tf.math.exp(1j * tf.cast(P, tf.complex64))
-        print('SP ', SP.shape)
         wv = tf.signal.inverse_stft(
             SP,
             4 * self.args.hop,
@@ -58,10 +55,7 @@ class Utils_functions:
             fft_length=4 * self.args.hop,
             window_fn=tf.signal.inverse_stft_window_fn(self.args.hop),
         )
-        print('wv ', wv.shape)
-        squeezed_wv = np.squeeze(wv)
-        print('squeezed_wv ', squeezed_wv.shape)
-        return squeezed_wv
+        return np.squeeze(wv)
 
     def _tf_log10(self, x):
         numerator = tf.math.log(x)
@@ -224,7 +218,6 @@ class Utils_functions:
         return tf.image.random_crop(noisetot, [1, self.args.latlen, 64 + 64])
 
     def generate_example_stereo(self, models_ls):
-        print('begin generate_example_stereo')
         (
             critic,
             gen,
@@ -237,15 +230,12 @@ class Utils_functions:
             [opt_dec, opt_disc],
         ) = models_ls
         noise = self.get_noise_interp()
-        print('noise ', noise.shape)
         abb = gen_ema(noise, training=False)
-        print('abb ', abb.shape)
         abbls = tf.split(abb, abb.shape[-2] // 16, -2)
         abb = tf.concat(abbls, 0)
 
         chls = []
         for channel in range(2):
-            print('channel ', channel)
             ab = self.distribute_dec2(
                 abb[
                     :,
@@ -255,18 +245,14 @@ class Utils_functions:
                 ],
                 dec2,
             )
-            print('ab ', ab.shape)
+
             abls = tf.split(ab, ab.shape[-2] // self.args.shape, -2)
             ab = tf.concat(abls, 0)
             ab_m, ab_p = self.distribute_dec(ab, dec)
-            print('ab m ', ab_m.shape)
-            print('ab p ', ab_p.shape)
             wv = self.conc_tog_specphase(ab_m, ab_p)
-            print('wv ', wv.shape)
             chls.append(wv)
 
         stacked = np.stack(chls, -1)
-        print('stacked ', stacked.shape)
         return stacked
 
     # Save in training loop
